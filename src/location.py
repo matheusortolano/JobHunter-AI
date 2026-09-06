@@ -66,35 +66,19 @@ def analisar_localizacao(vaga):
         "eu only",
     ]
 
-    eh_hibrida = any(
-        termo in texto_local
-        for termo in termos_hibrido
+    eh_hibrida = any(termo in texto_local for termo in termos_hibrido)
+
+    eh_remota = vaga.get("remote", False) or any(
+        termo in texto_local for termo in termos_remoto
     )
 
-    eh_remota = (
-        vaga.get("remote", False)
-        or any(termo in texto_local for termo in termos_remoto)
-    )
+    menciona_sp = any(termo in texto_local for termo in termos_sp)
 
-    menciona_sp = any(
-        termo in texto_local
-        for termo in termos_sp
-    )
+    menciona_brasil = any(termo in texto_completo for termo in termos_brasil)
 
-    menciona_brasil = any(
-        termo in texto_completo
-        for termo in termos_brasil
-    )
+    menciona_global = any(termo in texto_completo for termo in termos_global)
 
-    menciona_global = any(
-        termo in texto_completo
-        for termo in termos_global
-    )
-
-    restrita_exterior = any(
-        termo in texto_local
-        for termo in restricoes_exterior
-    )
+    restrita_exterior = any(termo in texto_local for termo in restricoes_exterior)
 
     # -----------------------------
     # HÍBRIDO

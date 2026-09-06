@@ -11,6 +11,7 @@ def calcular_score(vaga):
 
     if any(termo in titulo for termo in [
         "junior",
+        "júnior",
         "jr",
         "associate",
         "estágio",
@@ -23,18 +24,30 @@ def calcular_score(vaga):
         motivos.append("+ Senioridade compatível")
 
     if any(termo in titulo for termo in [
+        "pleno",
+        "mid-level",
+        "mid level",
+    ]):
+        score -= 20
+        motivos.append("- Vaga de nível Pleno")
+
+    if any(termo in titulo for termo in [
         "senior",
+        "sênior",
         "sr.",
         "lead",
         "staff",
         "principal",
+        "especialista",
     ]):
         score -= 35
         motivos.append("- Senioridade elevada")
 
     if any(termo in titulo for termo in [
         "manager",
+        "gerente",
         "director",
+        "diretor",
         "head",
     ]):
         score -= 30
@@ -56,6 +69,10 @@ def calcular_score(vaga):
         "software engineer",
         "software developer",
         "developer",
+        "desenvolvedor",
+        "desenvolvedora",
+        "programador",
+        "programadora",
     ]):
         score += 15
         motivos.append("+ Desenvolvimento de software no título")
@@ -64,6 +81,8 @@ def calcular_score(vaga):
         "data analyst",
         "business intelligence",
         "bi analyst",
+        "analista de dados",
+        "analista de bi",
     ]):
         score += 15
         motivos.append("+ Dados/BI no título")
@@ -111,6 +130,10 @@ def calcular_score(vaga):
         score += 5
         motivos.append("+ ERP na descrição")
 
+    # -----------------------------
+    # REMOTO
+    # -----------------------------
+
     localizacao = vaga.get("location", "").lower()
 
     eh_remota = (
@@ -120,17 +143,16 @@ def calcular_score(vaga):
         or "home office" in localizacao
     )
 
-    # -----------------------------
-    # REMOTO
-    # -----------------------------
-
     if eh_remota:
         score += 10
         motivos.append("+ Vaga remota")
     else:
         motivos.append("- Vaga não remota")
 
-    # Limita o score entre 0 e 100
+    # -----------------------------
+    # SCORE FINAL
+    # -----------------------------
+
     score = max(0, min(score, 100))
 
     return score, motivos
