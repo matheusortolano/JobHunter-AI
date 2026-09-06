@@ -1,25 +1,39 @@
 TERMOS_INTERESSE = [
+    # Desenvolvimento
     "python",
     "backend",
     "back-end",
     "developer",
-    "software",
-    "data",
+    "software engineer",
+    "software developer",
+
+    # Dados / BI
+    "data analyst",
+    "data engineer",
     "business intelligence",
-    "bi ",
+    "bi analyst",
+    "power bi",
+    "analytics",
+
+    # Automação
     "automation",
+    "automação",
+
+    # ERP / sistemas
     "sap",
     "oracle",
     "erp",
-    "qa",
+
+    # QA
     "quality assurance",
-    "junior",
-    "jr",
-    "estágio",
-    "estagio",
-    "intern",
-    "internship",
-    "trainee",
+    "qa engineer",
+    "qa analyst",
+    "software tester",
+
+    # Análise de sistemas
+    "systems analyst",
+    "system analyst",
+    "analista de sistemas",
 ]
 
 
@@ -29,9 +43,7 @@ def filtrar_vagas(vagas):
     for vaga in vagas:
         titulo = vaga.get("title", "").lower()
 
-        for termo in TERMOS_INTERESSE:
-            if termo in titulo:
-                vagas_filtradas.append(vaga)
-                break
+        if any(termo in titulo for termo in TERMOS_INTERESSE):
+            vagas_filtradas.append(vaga)
 
     return vagas_filtradas
