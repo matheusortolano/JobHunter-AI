@@ -7,7 +7,7 @@ vagas = buscar_vagas()
 vagas_filtradas = filtrar_vagas(vagas)
 
 for vaga in vagas_filtradas:
-    vaga["score"] = calcular_score(vaga)
+    vaga["score"], vaga["motivos"] = calcular_score(vaga)
 
 vagas_ordenadas = sorted(
     vagas_filtradas,
@@ -25,3 +25,6 @@ for vaga in vagas_ordenadas[:10]:
     print("Empresa:", vaga["company_name"])
     print("Localização:", vaga["location"])
     print("Remoto:", vaga["remote"])
+
+    for motivo in vaga["motivos"]:
+        print(motivo)
