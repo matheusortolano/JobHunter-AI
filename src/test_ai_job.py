@@ -1,38 +1,45 @@
-from ai_analyzer import analisar_vaga
-from database import buscar_melhor_vaga
+from ai_analyzer import AnalisePendente, analisar_vaga
+from database import buscar_melhor_vaga, salvar_analise_ia
 
 
 vaga = buscar_melhor_vaga()
 
 if not vaga:
-    print("Nenhuma vaga encontrada.")
+    print("Nenhuma vaga pendente de análise pela IA.")
+
 else:
     print("Analisando:")
     print(vaga["title"])
 
-    resultado = analisar_vaga(vaga)
+    try:
+        resultado = analisar_vaga(vaga)
 
-    print("\nRESULTADO DA IA\n")
+    except AnalisePendente as erro:
+        print("\nAnálise adiada:")
+        print(erro)
+        print("Nenhuma análise foi salva no banco.")
 
-    print(
-        f"Score IA: "
-        f"{resultado['score_ia']}/100"
-    )
+    else:
+        print("\nRESULTADO DA IA\n")
 
-    print(
-        "Recomendação:",
-        resultado["recomendacao"]
-    )
+        print(f"Score algoritmo: {vaga['score']}/100")
+        print(f"Score IA: {resultado['score_ia']}/100")
+        print("Recomendação:", resultado["recomendacao"])
 
-    print("\nPontos fortes:")
+        print("\nPontos fortes:")
 
-    for ponto in resultado["pontos_fortes"]:
-        print("+", ponto)
+        for ponto in resultado["pontos_fortes"]:
+            print("+", ponto)
 
-    print("\nGaps:")
+        print("\nGaps:")
 
-    for gap in resultado["gaps"]:
-        print("-", gap)
+        for gap in resultado["gaps"]:
+            print("-", gap)
 
-    print("\nJustificativa:")
-    print(resultado["justificativa"])
+        print("\nJustificativa:")
+        print(resultado["justificativa"])
+
+        salvar_analise_ia(
+            vaga["id"],
+            resultado,
+        )

@@ -181,6 +181,7 @@ def buscar_melhor_vaga():
         cursor.execute(
             """
             SELECT
+                id,
                 titulo AS title,
                 empresa AS company_name,
                 localizacao AS location,
@@ -188,12 +189,73 @@ def buscar_melhor_vaga():
                 score
             FROM vagas
             WHERE status_localizacao = 'elegivel'
+              AND score >= 40
+              AND analisada_ia = FALSE
             ORDER BY score DESC
             LIMIT 1
             """
         )
 
         return cursor.fetchone()
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conexao and conexao.is_connected():
+            conexao.close()
+
+def salvar_analise_ia(vaga_id, analise):
+    conexao = None
+    cursor = None
+
+    try:
+        conexao = conectar_banco()
+        cursor = conexao.cursor()
+
+        pontos_fortes = json.dumps(
+            analise.get("pontos_fortes", []),
+            ensure_ascii=False,
+        )
+
+        gaps = json.dumps(
+            analise.get("gaps", []),
+            ensure_ascii=False,
+        )
+
+        cursor.execute(
+            """
+            UPDATE vagas
+            SET
+                score_ia = %s,
+                recomendacao_ia = %s,
+                pontos_fortes_ia = %s,
+                gaps_ia = %s,
+                justificativa_ia = %s,
+                analisada_ia = TRUE,
+                data_analise_ia = CURRENT_TIMESTAMP
+            WHERE id = %s
+            """,
+            (
+                analise.get("score_ia"),
+                analise.get("recomendacao"),
+                pontos_fortes,
+                gaps,
+                analise.get("justificativa"),
+                vaga_id,
+            ),
+        )
+
+        conexao.commit()
+
+        print("Análise da IA salva no MySQL! ✅")
+
+    except mysql.connector.Error as erro:
+        if conexao:
+            conexao.rollback()
+
+        print("Erro ao salvar análise da IA:")
+        print(erro)
 
     finally:
         if cursor:
