@@ -111,11 +111,20 @@ def calcular_score(vaga):
         score += 5
         motivos.append("+ ERP na descrição")
 
+    localizacao = vaga.get("location", "").lower()
+
+    eh_remota = (
+        vaga.get("remote", False)
+        or "remote" in localizacao
+        or "remoto" in localizacao
+        or "home office" in localizacao
+    )
+
     # -----------------------------
     # REMOTO
     # -----------------------------
 
-    if vaga.get("remote"):
+    if eh_remota:
         score += 10
         motivos.append("+ Vaga remota")
     else:

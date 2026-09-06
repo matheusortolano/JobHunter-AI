@@ -1,3 +1,6 @@
+import re
+
+
 TERMOS_INTERESSE = [
     # Desenvolvimento
     "python",
@@ -30,20 +33,28 @@ TERMOS_INTERESSE = [
     "qa analyst",
     "software tester",
 
-    # Análise de sistemas
+    # Sistemas
     "systems analyst",
     "system analyst",
     "analista de sistemas",
 ]
 
 
+def contem_termo(texto, termo):
+    padrao = rf"\b{re.escape(termo)}\b"
+    return re.search(padrao, texto, re.IGNORECASE) is not None
+
+
 def filtrar_vagas(vagas):
     vagas_filtradas = []
 
     for vaga in vagas:
-        titulo = vaga.get("title", "").lower()
+        titulo = vaga.get("title", "")
 
-        if any(termo in titulo for termo in TERMOS_INTERESSE):
+        if any(
+            contem_termo(titulo, termo)
+            for termo in TERMOS_INTERESSE
+        ):
             vagas_filtradas.append(vaga)
 
     return vagas_filtradas
