@@ -20,7 +20,7 @@ for vaga in vagas_filtradas:
     vaga["motivo_localizacao"] = motivo_localizacao
 
 
-# Vagas elegíveis e com score mínimo
+# Elegíveis e relevantes
 vagas_elegiveis = [
     vaga
     for vaga in vagas_filtradas
@@ -29,7 +29,16 @@ vagas_elegiveis = [
 ]
 
 
-# Vagas remotas/localização que ainda precisam de análise
+# Elegíveis geograficamente, mas pouco compatíveis
+vagas_score_baixo = [
+    vaga
+    for vaga in vagas_filtradas
+    if vaga["status_localizacao"] == "elegivel"
+    and vaga["score"] < SCORE_MINIMO
+]
+
+
+# Localização ainda não conclusiva
 vagas_incertas = [
     vaga
     for vaga in vagas_filtradas
@@ -37,7 +46,7 @@ vagas_incertas = [
 ]
 
 
-# Vagas que não atendem nossa regra geográfica
+# Geograficamente inviáveis
 vagas_inelegiveis = [
     vaga
     for vaga in vagas_filtradas
@@ -45,7 +54,6 @@ vagas_inelegiveis = [
 ]
 
 
-# Ordena as vagas elegíveis da maior pontuação para a menor
 vagas_ordenadas = sorted(
     vagas_elegiveis,
     key=lambda vaga: vaga["score"],
@@ -56,6 +64,7 @@ vagas_ordenadas = sorted(
 print(f"Vagas coletadas: {len(vagas)}")
 print(f"Vagas da área: {len(vagas_filtradas)}")
 print(f"Elegíveis com score >= {SCORE_MINIMO}: {len(vagas_elegiveis)}")
+print(f"Elegíveis com score baixo: {len(vagas_score_baixo)}")
 print(f"Localização incerta: {len(vagas_incertas)}")
 print(f"Inelegíveis: {len(vagas_inelegiveis)}")
 

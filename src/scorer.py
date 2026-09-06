@@ -34,6 +34,8 @@ def calcular_score(vaga):
     if any(termo in titulo for termo in [
         "senior",
         "sênior",
+        " sr",
+        "sr ",
         "sr.",
         "lead",
         "staff",

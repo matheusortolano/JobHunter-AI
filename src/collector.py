@@ -11,6 +11,18 @@ ARBEITNOW_URL = "https://www.arbeitnow.com/api/job-board-api"
 REMOTEOK_URL = "https://remoteok.com/api"
 ADZUNA_URL = "https://api.adzuna.com/v1/api/jobs/br/search/1"
 
+TERMOS_BUSCA_ADZUNA = [
+    "python junior",
+    "estágio tecnologia",
+    "backend python",
+    "desenvolvedor junior",
+    "analista de dados",
+    "power bi",
+    "sap",
+    "oracle",
+    "automação",
+    "qa",
+]
 
 def buscar_vagas_arbeitnow():
     try:
@@ -110,73 +122,85 @@ def buscar_vagas_adzuna():
         print("Erro: credenciais da Adzuna não encontradas no .env")
         return []
 
-    parametros = {
-        "app_id": app_id,
-        "app_key": app_key,
-        "results_per_page": 50,
-        "what": "python",
-        "where": "São Paulo",
-        "content-type": "application/json",
-    }
+    vagas = []
+    urls_encontradas = set()
 
-    try:
-        resposta = requests.get(
-            ADZUNA_URL,
-            params=parametros,
-            timeout=10,
-        )
+    for termo_busca in TERMOS_BUSCA_ADZUNA:
+        parametros = {
+            "app_id": app_id,
+            "app_key": app_key,
+            "results_per_page": 50,
+            "what": termo_busca,
+            "where": "São Paulo",
+            "content-type": "application/json",
+        }
 
-        resposta.raise_for_status()
-        dados = resposta.json()
-
-        vagas = []
-
-        for vaga in dados.get("results", []):
-            titulo = vaga.get("title", "")
-            descricao = vaga.get("description", "")
-
-            localizacao = (
-                vaga.get("location", {})
-                .get("display_name", "")
+        try:
+            resposta = requests.get(
+                ADZUNA_URL,
+                params=parametros,
+                timeout=10,
             )
 
-            empresa = (
-                vaga.get("company", {})
-                .get("display_name", "")
+            resposta.raise_for_status()
+            dados = resposta.json()
+
+            for vaga in dados.get("results", []):
+                url = vaga.get("redirect_url", "")
+
+                # Evita adicionar a mesma vaga várias vezes
+                if url in urls_encontradas:
+                    continue
+
+                urls_encontradas.add(url)
+
+                titulo = vaga.get("title", "")
+                descricao = vaga.get("description", "")
+
+                localizacao = (
+                    vaga.get("location", {})
+                    .get("display_name", "")
+                )
+
+                empresa = (
+                    vaga.get("company", {})
+                    .get("display_name", "")
+                )
+
+                texto_remoto = (
+                    titulo
+                    + " "
+                    + descricao
+                    + " "
+                    + localizacao
+                ).lower()
+
+                remoto = any(
+                    termo in texto_remoto
+                    for termo in [
+                        "remote",
+                        "remoto",
+                        "home office",
+                    ]
+                )
+
+                vagas.append({
+                    "title": titulo,
+                    "company_name": empresa,
+                    "location": localizacao,
+                    "remote": remoto,
+                    "description": descricao,
+                    "url": url,
+                    "source": "Adzuna",
+                })
+
+        except requests.RequestException as erro:
+            print(
+                f"Erro ao buscar '{termo_busca}' na Adzuna:",
+                erro,
             )
 
-            texto_remoto = (
-                titulo
-                + " "
-                + descricao
-                + " "
-                + localizacao
-            ).lower()
-
-            remoto = any(
-                termo in texto_remoto
-                for termo in [
-                    "remote",
-                    "remoto",
-                    "home office",
-                ]
-            )
-
-            vagas.append({
-                "title": titulo,
-                "company_name": empresa,
-                "location": localizacao,
-                "remote": remoto,
-                "description": descricao,
-                "url": vaga.get("redirect_url", ""),
-                "source": "Adzuna",
-            })
-
-        return vagas
-
-    except requests.RequestException as erro:
-        print("Erro ao buscar vagas da Adzuna:", erro)
-        return []
+    return vagas
 
 
 def buscar_todas_vagas():
