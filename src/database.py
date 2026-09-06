@@ -170,6 +170,37 @@ def testar_conexao():
         if conexao and conexao.is_connected():
             conexao.close()
 
+def buscar_melhor_vaga():
+    conexao = None
+    cursor = None
+
+    try:
+        conexao = conectar_banco()
+        cursor = conexao.cursor(dictionary=True)
+
+        cursor.execute(
+            """
+            SELECT
+                titulo AS title,
+                empresa AS company_name,
+                localizacao AS location,
+                descricao AS description,
+                score
+            FROM vagas
+            WHERE status_localizacao = 'elegivel'
+            ORDER BY score DESC
+            LIMIT 1
+            """
+        )
+
+        return cursor.fetchone()
+
+    finally:
+        if cursor:
+            cursor.close()
+
+        if conexao and conexao.is_connected():
+            conexao.close()
 
 if __name__ == "__main__":
     testar_conexao()
