@@ -1,13 +1,18 @@
 from collector import buscar_todas_vagas
 from filters import filtrar_vagas
 from scorer import calcular_score
-
+from location import analisar_localizacao
 
 vagas = buscar_todas_vagas()
 vagas_filtradas = filtrar_vagas(vagas)
 
 for vaga in vagas_filtradas:
     vaga["score"], vaga["motivos"] = calcular_score(vaga)
+
+    status_localizacao, motivo_localizacao = analisar_localizacao(vaga)
+
+    vaga["status_localizacao"] = status_localizacao
+    vaga["motivo_localizacao"] = motivo_localizacao
 
 vagas_ordenadas = sorted(
     vagas_filtradas,
@@ -27,6 +32,8 @@ for vaga in vagas_ordenadas[:10]:
     print("Remoto:", vaga["remote"])
     print("Fonte:", vaga["source"])
     print("Link:", vaga["url"])
+    print("Elegibilidade:", vaga["status_localizacao"])
+    print("Motivo localização:", vaga["motivo_localizacao"])
 
     for motivo in vaga["motivos"]:
         print(motivo)
