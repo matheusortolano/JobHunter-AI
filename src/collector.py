@@ -11,6 +11,7 @@ ARBEITNOW_URL = "https://www.arbeitnow.com/api/job-board-api"
 REMOTEOK_URL = "https://remoteok.com/api"
 ADZUNA_URL = "https://api.adzuna.com/v1/api/jobs/br/search/1"
 
+
 TERMOS_BUSCA_ADZUNA = [
     "python junior",
     "estágio tecnologia",
@@ -24,11 +25,12 @@ TERMOS_BUSCA_ADZUNA = [
     "qa",
 ]
 
+
 def buscar_vagas_arbeitnow():
     try:
         resposta = requests.get(
             ARBEITNOW_URL,
-            timeout=10
+            timeout=10,
         )
 
         resposta.raise_for_status()
@@ -49,8 +51,18 @@ def buscar_vagas_arbeitnow():
 
         return vagas
 
-    except requests.RequestException as erro:
-        print("Erro ao buscar vagas da Arbeitnow:", erro)
+    except requests.HTTPError as erro:
+        status = (
+            erro.response.status_code
+            if erro.response is not None
+            else "desconhecido"
+        )
+
+        print(f"Erro na Arbeitnow: HTTP {status}")
+        return []
+
+    except requests.RequestException:
+        print("Erro de conexão com a Arbeitnow.")
         return []
 
 
@@ -70,16 +82,17 @@ def buscar_vagas_remoteok():
         vagas = []
 
         for vaga in dados:
-
+            # Primeiro elemento da API não é uma vaga
             if not vaga.get("position"):
                 continue
 
+            titulo = vaga.get("position", "")
             descricao = vaga.get("description") or ""
             localizacao = vaga.get("location") or ""
             tags = vaga.get("tags") or []
 
             texto_remoto = (
-                vaga.get("position", "")
+                titulo
                 + " "
                 + localizacao
                 + " "
@@ -98,7 +111,7 @@ def buscar_vagas_remoteok():
             )
 
             vagas.append({
-                "title": vaga.get("position", ""),
+                "title": titulo,
                 "company_name": vaga.get("company", ""),
                 "location": localizacao,
                 "remote": remoto,
@@ -109,8 +122,18 @@ def buscar_vagas_remoteok():
 
         return vagas
 
-    except requests.RequestException as erro:
-        print("Erro ao buscar vagas da Remote OK:", erro)
+    except requests.HTTPError as erro:
+        status = (
+            erro.response.status_code
+            if erro.response is not None
+            else "desconhecido"
+        )
+
+        print(f"Erro na Remote OK: HTTP {status}")
+        return []
+
+    except requests.RequestException:
+        print("Erro de conexão com a Remote OK.")
         return []
 
 
@@ -148,11 +171,12 @@ def buscar_vagas_adzuna():
             for vaga in dados.get("results", []):
                 url = vaga.get("redirect_url", "")
 
-                # Evita adicionar a mesma vaga várias vezes
-                if url in urls_encontradas:
+                # Evita duplicatas entre as buscas da Adzuna
+                if url and url in urls_encontradas:
                     continue
 
-                urls_encontradas.add(url)
+                if url:
+                    urls_encontradas.add(url)
 
                 titulo = vaga.get("title", "")
                 descricao = vaga.get("description", "")
@@ -194,10 +218,22 @@ def buscar_vagas_adzuna():
                     "source": "Adzuna",
                 })
 
-        except requests.RequestException as erro:
+        except requests.HTTPError as erro:
+            status = (
+                erro.response.status_code
+                if erro.response is not None
+                else "desconhecido"
+            )
+
             print(
-                f"Erro ao buscar '{termo_busca}' na Adzuna:",
-                erro,
+                f"Erro ao buscar '{termo_busca}' "
+                f"na Adzuna: HTTP {status}"
+            )
+
+        except requests.RequestException:
+            print(
+                f"Erro de conexão ao buscar "
+                f"'{termo_busca}' na Adzuna."
             )
 
     return vagas

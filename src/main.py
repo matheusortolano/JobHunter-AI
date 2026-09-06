@@ -2,14 +2,16 @@ from collector import buscar_todas_vagas
 from filters import filtrar_vagas
 from scorer import calcular_score
 from location import analisar_localizacao
-
+from deduplicator import deduplicar_vagas
 
 SCORE_MINIMO = 40
 
 
-vagas = buscar_todas_vagas()
-vagas_filtradas = filtrar_vagas(vagas)
+vagas_coletadas = buscar_todas_vagas()
 
+vagas = deduplicar_vagas(vagas_coletadas)
+
+vagas_filtradas = filtrar_vagas(vagas)
 
 for vaga in vagas_filtradas:
     vaga["score"], vaga["motivos"] = calcular_score(vaga)
@@ -61,7 +63,9 @@ vagas_ordenadas = sorted(
 )
 
 
-print(f"Vagas coletadas: {len(vagas)}")
+print(f"Vagas coletadas: {len(vagas_coletadas)}")
+print(f"Vagas únicas: {len(vagas)}")
+print(f"Duplicadas removidas: {len(vagas_coletadas) - len(vagas)}")
 print(f"Vagas da área: {len(vagas_filtradas)}")
 print(f"Elegíveis com score >= {SCORE_MINIMO}: {len(vagas_elegiveis)}")
 print(f"Elegíveis com score baixo: {len(vagas_score_baixo)}")
