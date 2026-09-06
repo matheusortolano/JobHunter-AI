@@ -3,6 +3,7 @@ from filters import filtrar_vagas
 from scorer import calcular_score
 from location import analisar_localizacao
 from deduplicator import deduplicar_vagas
+from database import salvar_vagas
 
 SCORE_MINIMO = 40
 
@@ -21,6 +22,7 @@ for vaga in vagas_filtradas:
     vaga["status_localizacao"] = status_localizacao
     vaga["motivo_localizacao"] = motivo_localizacao
 
+vagas_novas, atualizadas = salvar_vagas(vagas_filtradas)
 
 # Elegíveis e relevantes
 vagas_elegiveis = [
@@ -62,11 +64,21 @@ vagas_ordenadas = sorted(
     reverse=True
 )
 
+novas_relevantes = [
+    vaga
+    for vaga in vagas_novas
+    if vaga["status_localizacao"] == "elegivel"
+    and vaga["score"] >= SCORE_MINIMO
+]
 
 print(f"Vagas coletadas: {len(vagas_coletadas)}")
 print(f"Vagas únicas: {len(vagas)}")
 print(f"Duplicadas removidas: {len(vagas_coletadas) - len(vagas)}")
 print(f"Vagas da área: {len(vagas_filtradas)}")
+print(f"Novas vagas relevantes: {len(novas_relevantes)}")
+print(f"Novas salvas no banco: {len(vagas_novas)}")
+print(f"Já existentes atualizadas: {atualizadas}")
+
 print(f"Elegíveis com score >= {SCORE_MINIMO}: {len(vagas_elegiveis)}")
 print(f"Elegíveis com score baixo: {len(vagas_score_baixo)}")
 print(f"Localização incerta: {len(vagas_incertas)}")

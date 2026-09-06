@@ -1,3 +1,4 @@
+import hashlib
 import re
 import unicodedata
 
@@ -47,12 +48,9 @@ def deduplicar_vagas(vagas):
         url = vaga.get("url", "")
         chave = gerar_chave_vaga(vaga)
 
-        # Mesma URL = mesma vaga
         if url and url in urls_encontradas:
             continue
 
-        # Mesmo cargo + empresa + localização
-        # Só usamos essa regra quando a empresa está informada
         if chave[1] and chave in chaves_encontradas:
             continue
 
@@ -63,3 +61,13 @@ def deduplicar_vagas(vagas):
         vagas_unicas.append(vaga)
 
     return vagas_unicas
+
+
+def gerar_fingerprint(vaga):
+    titulo, empresa, localizacao = gerar_chave_vaga(vaga)
+
+    texto = f"{titulo}|{empresa}|{localizacao}"
+
+    return hashlib.sha256(
+        texto.encode("utf-8")
+    ).hexdigest()
