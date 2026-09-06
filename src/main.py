@@ -1,9 +1,9 @@
-from collector import buscar_vagas
+from collector import buscar_todas_vagas
 from filters import filtrar_vagas
 from scorer import calcular_score
 
 
-vagas = buscar_vagas()
+vagas = buscar_todas_vagas()
 vagas_filtradas = filtrar_vagas(vagas)
 
 for vaga in vagas_filtradas:
@@ -25,6 +25,8 @@ for vaga in vagas_ordenadas[:10]:
     print("Empresa:", vaga["company_name"])
     print("Localização:", vaga["location"])
     print("Remoto:", vaga["remote"])
+    print("Fonte:", vaga["source"])
+    print("Link:", vaga["url"])
 
     for motivo in vaga["motivos"]:
         print(motivo)
