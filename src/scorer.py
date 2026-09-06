@@ -4,44 +4,101 @@ def calcular_score(vaga):
     titulo = vaga.get("title", "").lower()
     descricao = vaga.get("description", "").lower()
 
-    texto = titulo + " " + descricao
+    # --------------------------------
+    # SENIORIDADE
+    # --------------------------------
 
-    # Senioridade desejada
-    if any(termo in texto for termo in ["junior", "jr", "estágio", "estagio", "intern", "internship", "trainee"]):
+    if any(termo in titulo for termo in [
+        "junior",
+        "jr",
+        "associate",
+        "estágio",
+        "estagio",
+        "intern",
+        "internship",
+        "trainee",
+    ]):
+        score += 30
+
+    if any(termo in titulo for termo in [
+        "senior",
+        "sr.",
+        "lead",
+        "staff",
+        "principal",
+    ]):
+        score -= 35
+
+    if any(termo in titulo for termo in [
+        "manager",
+        "director",
+        "head",
+    ]):
+        score -= 30
+
+    # --------------------------------
+    # TÍTULO DA VAGA
+    # --------------------------------
+
+    if "python" in titulo:
         score += 25
 
-    # Tecnologias / áreas de interesse
-    if "python" in texto:
+    if "backend" in titulo or "back-end" in titulo:
         score += 20
 
-    if "backend" in texto or "back-end" in texto:
+    if any(termo in titulo for termo in [
+        "software engineer",
+        "software developer",
+        "developer",
+    ]):
         score += 15
 
-    if "api" in texto:
+    if any(termo in titulo for termo in [
+        "data analyst",
+        "business intelligence",
+        "bi analyst",
+    ]):
+        score += 15
+
+    if any(termo in titulo for termo in [
+        "automation",
+        "automação",
+    ]):
+        score += 15
+
+    # --------------------------------
+    # TECNOLOGIAS NA DESCRIÇÃO
+    # --------------------------------
+
+    if "python" in descricao:
         score += 10
 
-    if "sql" in texto or "mysql" in texto:
+    if "sql" in descricao or "mysql" in descricao:
+        score += 8
+
+    if "api" in descricao:
+        score += 8
+
+    if "fastapi" in descricao:
         score += 10
 
-    if "automation" in texto or "automação" in texto:
-        score += 10
+    if "power bi" in descricao:
+        score += 8
 
-    if any(termo in texto for termo in ["business intelligence", "power bi", "data analyst"]):
-        score += 10
+    if "sap" in descricao:
+        score += 8
 
-    if any(termo in texto for termo in ["sap", "oracle", "erp"]):
-        score += 10
+    if "oracle" in descricao:
+        score += 8
 
-    # Trabalho remoto
+    if "erp" in descricao:
+        score += 5
+
+    # --------------------------------
+    # REMOTO
+    # --------------------------------
+
     if vaga.get("remote"):
         score += 10
 
-    # Penalizações
-    if any(termo in titulo for termo in ["senior", "sr.", "lead", "staff", "principal"]):
-        score -= 30
-
-    if any(termo in titulo for termo in ["manager", "director", "head"]):
-        score -= 25
-
-    # Mantém entre 0 e 100
     return max(0, min(score, 100))
