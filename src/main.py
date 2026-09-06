@@ -76,6 +76,24 @@ print(f"Vagas únicas: {len(vagas)}")
 print(f"Duplicadas removidas: {len(vagas_coletadas) - len(vagas)}")
 print(f"Vagas da área: {len(vagas_filtradas)}")
 print(f"Novas vagas relevantes: {len(novas_relevantes)}")
+if vagas_novas:
+    print("\nNOVAS VAGAS ENCONTRADAS NESTA EXECUÇÃO\n")
+
+    novas_ordenadas = sorted(
+        vagas_novas,
+        key=lambda vaga: vaga["score"],
+        reverse=True,
+    )
+
+    for vaga in novas_ordenadas[:10]:
+        print("-" * 60)
+        print(f"Score: {vaga['score']}/100")
+        print("Cargo:", vaga["title"])
+        print("Empresa:", vaga["company_name"])
+        print("Localização:", vaga["location"])
+        print("Elegibilidade:", vaga["status_localizacao"])
+        print("Fonte:", vaga["source"])
+        print("Link:", vaga["url"])
 print(f"Novas salvas no banco: {len(vagas_novas)}")
 print(f"Já existentes atualizadas: {atualizadas}")
 
