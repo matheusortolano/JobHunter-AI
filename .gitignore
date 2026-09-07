@@ -35,3 +35,7 @@ credentials/
 
 data/email_report_state.json
 data/email_report_state.json.tmp
+
+data/email_report_state.json.bak
+data/.email_report_initialized
+data/.email_report.lock
