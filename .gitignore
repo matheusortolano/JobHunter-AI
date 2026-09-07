@@ -20,3 +20,5 @@ Thumbs.db
 
 #JSON
 data/profile.json
+data/ai_queue_state.json
+data/ai_queue_state.json.tmp
