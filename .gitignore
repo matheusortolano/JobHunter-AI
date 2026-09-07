@@ -27,3 +27,11 @@ data/.ai_queue.lock
 
 data/logs/
 data/reports/
+
+data/collector_state.json
+data/collector_state.json.tmp
+data/.collector.lock
+credentials/
+
+data/email_report_state.json
+data/email_report_state.json.tmp
