@@ -24,3 +24,6 @@ data/ai_queue_state.json
 data/ai_queue_state.json.tmp
 
 data/.ai_queue.lock
+
+data/logs/
+data/reports/
