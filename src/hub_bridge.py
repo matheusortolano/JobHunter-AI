@@ -10,7 +10,6 @@ from dotenv import load_dotenv
 RAIZ = Path(__file__).resolve().parent.parent
 load_dotenv(RAIZ / ".env")
 
-# Os dois projetos ficam dentro de D:\Projetos\Python.
 HUB_ROOT = Path(
     os.getenv(
         "MATHEUS_HUB_ROOT",
@@ -39,12 +38,17 @@ def chamar_hub(argumentos, payload=None):
         *argumentos,
     ]
 
+    # Garante UTF-8 na entrada e saída do processo do Hub.
+    ambiente = os.environ.copy()
+    ambiente["PYTHONIOENCODING"] = "utf-8"
+
     try:
         processo = subprocess.run(
             comando,
             cwd=HUB_ROOT,
+            env=ambiente,
             input=(
-                json.dumps(payload, ensure_ascii=False)
+                json.dumps(payload, ensure_ascii=True)
                 if payload is not None
                 else None
             ),
