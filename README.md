@@ -8,6 +8,16 @@ The current cloud version runs on AWS Lambda and can be scheduled automatically 
 
 ---
 
+## Demo
+
+<p align="center">
+  <img src="assets/jobhunter-telegram.png" alt="JobHunter AI delivering selected job opportunities through Telegram" width="700">
+</p>
+
+<p align="center">
+  <em>JobHunter AI delivering filtered job opportunities through Telegram.</em>
+</p>
+
 ## Overview
 
 Job searching across multiple platforms can become repetitive and difficult to organize.
