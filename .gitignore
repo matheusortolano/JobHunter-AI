@@ -33,12 +33,7 @@ data/collector_state.json.tmp
 data/.collector.lock
 credentials/
 
-data/email_report_state.json
-data/email_report_state.json.tmp
-
-data/email_report_state.json.bak
-data/.email_report_initialized
-data/.email_report.lock
-
 data/telegram_jobs.sqlite3*
 data/.telegram_jobs*
+
+cloud/dist/

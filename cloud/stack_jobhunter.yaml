@@ -1,0 +1,162 @@
+AWSTemplateFormatVersion: '2010-09-09'
+Description: Matheus AI Hub - JobHunter Cloud v1.1 (Arbeitnow + Remote OK + Adzuna)
+
+Parameters:
+  BucketName:
+    Type: String
+    Default: matheus-ai-hub-data-2026
+
+  PackageKey:
+    Type: String
+    Description: S3 key created by cloud/build_jobhunter.py
+
+  AdzunaAppIdParameter:
+    Type: String
+    Default: /matheus-ai-hub/jobhunter/adzuna-app-id
+
+  AdzunaAppKeyParameter:
+    Type: String
+    Default: /matheus-ai-hub/jobhunter/adzuna-app-key
+
+  TelegramTokenParameter:
+    Type: String
+    Default: /matheus-ai-hub/daily-news/telegram-token
+
+  TelegramChatParameter:
+    Type: String
+    Default: /matheus-ai-hub/daily-news/telegram-chat-id
+
+  DeliveryEnabled:
+    Type: String
+    AllowedValues: ['0', '1']
+    Default: '0'
+
+  ScheduleEnabled:
+    Type: String
+    AllowedValues: ['true', 'false']
+    Default: 'false'
+
+  ScheduleHour:
+    Type: Number
+    MinValue: 0
+    MaxValue: 23
+    Default: 8
+
+Conditions:
+  EnableSchedule: !Equals [!Ref ScheduleEnabled, 'true']
+
+Resources:
+  JobHunterLogGroup:
+    Type: AWS::Logs::LogGroup
+    Properties:
+      LogGroupName: /aws/lambda/matheus-hub-jobhunter
+      RetentionInDays: 7
+
+  JobHunterRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: lambda.amazonaws.com}
+            Action: sts:AssumeRole
+      ManagedPolicyArns:
+        - arn:aws:iam::aws:policy/service-role/AWSLambdaBasicExecutionRole
+      Policies:
+        - PolicyName: MatheusJobHunterAccess
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Sid: JobHunterBucketList
+                Effect: Allow
+                Action:
+                  - s3:ListBucket
+                Resource:
+                  - !Sub arn:aws:s3:::${BucketName}
+
+              - Sid: JobHunterData
+                Effect: Allow
+                Action:
+                  - s3:GetObject
+                  - s3:PutObject
+                Resource:
+                  - !Sub arn:aws:s3:::${BucketName}/jobhunter/*
+              - Sid: ReadJobHunterSecrets
+                Effect: Allow
+                Action: ssm:GetParameter
+                Resource:
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${AdzunaAppIdParameter}
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${AdzunaAppKeyParameter}
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelegramTokenParameter}
+                  - !Sub arn:aws:ssm:${AWS::Region}:${AWS::AccountId}:parameter${TelegramChatParameter}
+
+  JobHunterFunction:
+    Type: AWS::Lambda::Function
+    DependsOn: JobHunterLogGroup
+    Properties:
+      FunctionName: matheus-hub-jobhunter
+      Runtime: python3.13
+      Architectures: [x86_64]
+      Handler: lambda_function.lambda_handler
+      Role: !GetAtt JobHunterRole.Arn
+      MemorySize: 256
+      Timeout: 180
+      Code:
+        S3Bucket: !Ref BucketName
+        S3Key: !Ref PackageKey
+      Environment:
+        Variables:
+          JOBHUNTER_BUCKET: !Ref BucketName
+          JOBHUNTER_DELIVERY_ENABLED: !Ref DeliveryEnabled
+          ADZUNA_APP_ID_PARAM: !Ref AdzunaAppIdParameter
+          ADZUNA_APP_KEY_PARAM: !Ref AdzunaAppKeyParameter
+          TELEGRAM_TOKEN_PARAM: !Ref TelegramTokenParameter
+          TELEGRAM_CHAT_PARAM: !Ref TelegramChatParameter
+
+  SchedulerRole:
+    Type: AWS::IAM::Role
+    Properties:
+      AssumeRolePolicyDocument:
+        Version: '2012-10-17'
+        Statement:
+          - Effect: Allow
+            Principal: {Service: scheduler.amazonaws.com}
+            Action: sts:AssumeRole
+            Condition:
+              StringEquals:
+                aws:SourceAccount: !Ref AWS::AccountId
+                aws:SourceArn: !Sub arn:aws:scheduler:${AWS::Region}:${AWS::AccountId}:schedule-group/default
+      Policies:
+        - PolicyName: InvokeJobHunterOnly
+          PolicyDocument:
+            Version: '2012-10-17'
+            Statement:
+              - Effect: Allow
+                Action: lambda:InvokeFunction
+                Resource: !GetAtt JobHunterFunction.Arn
+
+  JobHunterSchedule:
+    Type: AWS::Scheduler::Schedule
+    Properties:
+      Name: matheus-hub-jobhunter
+      Description: JobHunter daily run; disabled until explicitly approved
+      State: !If [EnableSchedule, ENABLED, DISABLED]
+      ScheduleExpression: !Sub 'cron(0 ${ScheduleHour} * * ? *)'
+      ScheduleExpressionTimezone: America/Sao_Paulo
+      FlexibleTimeWindow: {Mode: 'OFF'}
+      Target:
+        Arn: !GetAtt JobHunterFunction.Arn
+        RoleArn: !GetAtt SchedulerRole.Arn
+        Input: '{"mode":"run"}'
+        RetryPolicy:
+          MaximumRetryAttempts: 0
+          MaximumEventAgeInSeconds: 60
+
+Outputs:
+  FunctionName:
+    Value: !Ref JobHunterFunction
+  ScheduleName:
+    Value: !Ref JobHunterSchedule
+  DataBucket:
+    Value: !Ref BucketName
